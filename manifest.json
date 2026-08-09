@@ -1,43 +1,32 @@
-"use client";
+// Lightweight "who am I" helper.
+//
+// Per the MVP spec, there's no full login system yet — a user is
+// identified by phone number. On registration we upsert a row into
+// `users` (keyed by phone) and remember the returned id in
+// localStorage. Every screen reads that id to know who is posting.
+//
+// This is intentionally simple. See README.md → "Upgrading to real
+// auth" for how to swap this for Supabase Auth later without
+// changing the database schema.
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+const KEY = "earthworks_user";
 
-const ITEMS = [
-  { href: "/supply", label: "יש לי לתת", icon: "▲" },
-  { href: "/demand", label: "אני צריך", icon: "▼" },
-  { href: "/matches", label: "התאמות", icon: "◆" },
-  { href: "/timeline", label: "תכנון קדימה", icon: "▤" },
-  { href: "/map", label: "מפה", icon: "●" },
-  { href: "/profile", label: "פרופיל", icon: "◐" },
-];
+export function getStoredUser() {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
 
-export default function BottomNav() {
-  const pathname = usePathname();
+export function storeUser(user) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(KEY, JSON.stringify(user));
+}
 
-  return (
-    <nav
-      className="fixed bottom-0 inset-x-0 md:inset-x-auto md:right-0 md:top-0 md:bottom-0 md:w-20
-                 bg-stone-900 text-stone-50 z-40 flex md:flex-col
-                 justify-around md:justify-start md:pt-6 md:gap-1
-                 border-t md:border-t-0 md:border-s border-stone-800"
-    >
-      {ITEMS.map((item) => {
-        const active = pathname === item.href;
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 md:py-3 text-[11px] font-semibold flex-1 md:flex-none
-              ${active ? "text-brand-400" : "text-stone-300"}`}
-          >
-            <span className={`text-lg leading-none ${active ? "text-brand-400" : "text-stone-400"}`}>
-              {item.icon}
-            </span>
-            <span className="leading-tight text-center">{item.label}</span>
-          </Link>
-        );
-      })}
-    </nav>
-  );
+export function clearStoredUser() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(KEY);
 }
